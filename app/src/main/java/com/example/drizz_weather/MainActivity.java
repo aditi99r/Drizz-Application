@@ -1,7 +1,11 @@
  package com.example.drizz_weather;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -35,14 +39,17 @@ import java.util.Calendar;
     TextView temp_yt, time, longitude, latitude, humidity, sunrise, sunset, pressure, wind, country_yt, city_yt, max_temp, min_temp, feels;
 
      String Location_Provider = LocationManager.GPS_PROVIDER;
-
+     static final int REQUEST_LOCATION = 1;
      LocationManager mLocationManager;
      LocationListener mLocationListner;
+     LocationManager locationManager;
+     String lat, lon;
 
      @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
 
         editText=findViewById(R.id.editTextTextPersonName);
         button=findViewById(R.id.button);
@@ -68,18 +75,41 @@ import java.util.Calendar;
             public void onClick(View view) {
                 String city = editText.getText().toString();
                 if(city==null){
-
+                    getLocation();
+                    String url="https://api.openweathermap.org/data/2.5/weather?lat="+ lat +"&lon="+ lon +"&appid=286216a25c5c8cf3d4e189ace4dbab69";
+                }
+                else{
+                    String url="https://api.openweathermap.org/data/2.5/weather?q="+ city +"&appid=286216a25c5c8cf3d4e189ace4dbab69";
+                    findWeather(url);
                 }
             }
         });
 
     }
 
+     public void getLocation() {
+         if (ActivityCompat.checkSelfPermission(
+                 MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                 MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION);
+         } else {
+             Location locationGPS = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+             if (locationGPS != null) {
+                 double lati = ((Location) locationGPS).getLatitude();
+                 double longi = locationGPS.getLongitude();
+                 lat = String.valueOf(lati);
+                 lon = String.valueOf(longi);
+             } else {
+                 Toast.makeText(this, "Unable to find location.", Toast.LENGTH_SHORT).show();
+             }
+         }
+     }
 
 
-    public void findWeather(){
-        String city = editText.getText().toString();
-        String url="https://api.openweathermap.org/data/2.5/weather?q="+ city +"&appid=286216a25c5c8cf3d4e189ace4dbab69";
+
+    public void findWeather(String url){
+//        String city = editText.getText().toString();
+//        String url="https://api.openweathermap.org/data/2.5/weather?q="+ city +"&appid=286216a25c5c8cf3d4e189ace4dbab69";
 
         StringRequest stringRequest= new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
             @Override
